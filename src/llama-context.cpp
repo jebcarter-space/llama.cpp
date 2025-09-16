@@ -45,6 +45,12 @@ llama_context::llama_context(
     cparams.pooling_type     = params.pooling_type;
     cparams.warmup           = false;
 
+    // Copy loop attention parameters
+    cparams.loop_attention_enabled     = params.loop_attention_enabled;
+    cparams.loop_attention_n_loops     = params.loop_attention_n_loops;
+    cparams.loop_attention_start_layer = params.loop_attention_start_layer;
+    cparams.loop_attention_end_layer   = params.loop_attention_end_layer;
+
     cparams.n_ctx            = params.n_ctx           == 0    ? hparams.n_ctx_train           : params.n_ctx;
     cparams.rope_freq_base   = params.rope_freq_base  == 0.0f ? hparams.rope_freq_base_train  : params.rope_freq_base;
     cparams.rope_freq_scale  = params.rope_freq_scale == 0.0f ? hparams.rope_freq_scale_train : params.rope_freq_scale;
@@ -2274,6 +2280,10 @@ llama_context_params llama_context_default_params() {
         /*.type_v                      =*/ GGML_TYPE_F16,
         /*.abort_callback              =*/ nullptr,
         /*.abort_callback_data         =*/ nullptr,
+        /*.loop_attention_enabled      =*/ false,
+        /*.loop_attention_n_loops      =*/ 1,
+        /*.loop_attention_start_layer  =*/ 0,
+        /*.loop_attention_end_layer    =*/ -1,
         /*.embeddings                  =*/ false,
         /*.offload_kqv                 =*/ true,
         /*.no_perf                     =*/ true,
