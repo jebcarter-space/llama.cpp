@@ -24,6 +24,7 @@
 #include <regex>
 #include <sstream>
 #include <stdexcept>
+#include <vector>
 
 const char * llm_type_name(llm_type type) {
     switch (type) {
@@ -6264,8 +6265,33 @@ struct llm_build_llama : public llm_graph_context {
 
         ggml_tensor * inp_out_ids = build_inp_out_ids();
 
-        for (int il = 0; il < n_layer; ++il) {
-            ggml_tensor * inpSA = inpL;
+        // Loop attention implementation
+        const bool loop_attention_enabled = cparams.loop_attention_enabled && cparams.loop_attention_n_loops > 1;
+        const int32_t loop_start = loop_attention_enabled ? cparams.loop_attention_start_layer : 0;
+        const int32_t loop_end = loop_attention_enabled ? 
+            (cparams.loop_attention_end_layer >= 0 ? cparams.loop_attention_end_layer : n_layer - 1) 
+            : n_layer - 1;
+        const uint32_t n_loops = loop_attention_enabled ? cparams.loop_attention_n_loops : 1;
+
+        // Store intermediate layer outputs for loop attention
+        std::vector<ggml_tensor *> layer_outputs;
+        if (loop_attention_enabled) {
+            layer_outputs.resize(n_layer, nullptr);
+        }
+
+        for (uint32_t loop_iter = 0; loop_iter < n_loops; ++loop_iter) {
+            // For first iteration, process all layers. For subsequent iterations, process only loop range
+            const int start_layer = (loop_iter == 0) ? 0 : loop_start;
+            const int end_layer = (loop_iter == 0) ? n_layer : (loop_end + 1);
+
+            for (int il = start_layer; il < end_layer; ++il) {
+                // If this is a subsequent loop iteration and we're in the loop range, 
+                // use the stored output from the previous iteration as input
+                if (loop_iter > 0 && il >= loop_start && il <= loop_end && layer_outputs[il] != nullptr) {
+                    inpL = layer_outputs[il];
+                }
+
+                ggml_tensor * inpSA = inpL;
 
             // norm
             cur = build_norm(inpL,
@@ -6376,9 +6402,15 @@ struct llm_build_llama : public llm_graph_context {
             cur = build_cvec(cur, il);
             cb(cur, "l_out", il);
 
+            // Store layer output for loop attention if enabled and within loop range
+            if (loop_attention_enabled && il >= loop_start && il <= loop_end) {
+                layer_outputs[il] = cur;
+            }
+
             // input for next layer
             inpL = cur;
-        }
+            } // end of layer loop
+        } // end of loop iteration
 
         cur = inpL;
 

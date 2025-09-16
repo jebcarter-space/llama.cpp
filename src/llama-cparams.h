@@ -34,6 +34,12 @@ struct llama_cparams {
     bool op_offload;
     bool kv_unified;
 
+    // Loop attention parameters
+    bool     loop_attention_enabled;
+    uint32_t loop_attention_n_loops;
+    uint32_t loop_attention_start_layer;
+    int32_t  loop_attention_end_layer;
+
     enum llama_pooling_type pooling_type;
 
     ggml_backend_sched_eval_callback cb_eval;

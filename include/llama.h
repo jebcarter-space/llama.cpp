@@ -335,6 +335,12 @@ extern "C" {
         ggml_abort_callback abort_callback;
         void *              abort_callback_data;
 
+        // Loop attention parameters
+        bool     loop_attention_enabled;     // enable loop attention processing
+        uint32_t loop_attention_n_loops;     // number of loops through selected layers (default: 1)
+        uint32_t loop_attention_start_layer; // starting layer for looping (0-based, default: 0)
+        int32_t  loop_attention_end_layer;   // ending layer for looping (-1 = last layer, default: -1)
+
         // Keep the booleans together and at the end of the struct to avoid misalignment during copy-by-value.
         bool embeddings;  // if true, extract embeddings (together with logits)
         bool offload_kqv; // offload the KQV ops (including the KV cache) to GPU
