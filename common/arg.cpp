@@ -3015,6 +3015,34 @@ common_params_context common_params_parser_init(common_params & params, llama_ex
         }
     ).set_examples({LLAMA_EXAMPLE_SERVER}).set_env("LLAMA_ARG_RERANKING"));
     add_opt(common_arg(
+        {"--loop-attention"},
+        string_format("enable loop attention processing (default: %s)", "disabled"),
+        [](common_params & params) {
+            params.loop_attention_enabled = true;
+        }
+    ));
+    add_opt(common_arg(
+        {"--loop-attention-loops"}, "N",
+        string_format("number of loops through selected layers (default: %d)", params.loop_attention_n_loops),
+        [](common_params & params, int value) {
+            params.loop_attention_n_loops = value;
+        }
+    ));
+    add_opt(common_arg(
+        {"--loop-attention-start"}, "N",
+        string_format("starting layer for loop attention, 0-based (default: %d)", params.loop_attention_start),
+        [](common_params & params, int value) {
+            params.loop_attention_start = value;
+        }
+    ));
+    add_opt(common_arg(
+        {"--loop-attention-end"}, "N",
+        string_format("ending layer for loop attention, -1 for last layer (default: %d)", params.loop_attention_end),
+        [](common_params & params, int value) {
+            params.loop_attention_end = value;
+        }
+    ));
+    add_opt(common_arg(
         {"--api-key"}, "KEY",
         "API key to use for authentication (default: none)",
         [](common_params & params, const std::string & value) {

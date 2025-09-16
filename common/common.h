@@ -418,6 +418,12 @@ struct common_params {
     std::string embd_sep   = "\n";  // separator of embeddings
     std::string cls_sep    = "\t";  // separator of classification sequences
 
+    // loop attention
+    bool loop_attention_enabled     = false; // enable loop attention processing
+    int32_t loop_attention_n_loops  = 1;     // number of loops through selected layers
+    int32_t loop_attention_start    = 0;     // starting layer for looping (0-based)
+    int32_t loop_attention_end      = -1;    // ending layer for looping (-1 = last layer)
+
     // server params
     int32_t port              = 8080;         // server listens on this network port
     int32_t timeout_read      = 600;          // http read timeout in seconds
